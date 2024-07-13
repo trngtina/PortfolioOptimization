@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime, timedelta
-from streamlit_tags import st_tags
+
 import yfinance as yf
 
 #import optimization
