@@ -10,7 +10,7 @@ import yfinance as yf
 from scipy.optimize import minimize
 
 
-def optimal_portfolio(tickers, hold_days):
+def optimal_portfolio(tickers, hold_days, min_bound, max_bound):
 
     # Dates
     end_date = datetime.today()
@@ -57,7 +57,7 @@ def optimal_portfolio(tickers, hold_days):
 
     # Constraints and Bounds
     constraints = {'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}
-    bounds = [(0, 0.4) for _ in range(len(tickers))]
+    bounds = [(min_bound, max_bound) for _ in range(len(tickers))]
 
     ten_year_treasury = yf.Ticker("^TNX")
     hist = ten_year_treasury.history(period="max")['Close']
