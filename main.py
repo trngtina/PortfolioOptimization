@@ -98,7 +98,7 @@ else:
 
             # Define the slider
             sliders = [dict(
-                active=0,
+                active = len(results)-1,
                 currentvalue={"prefix": "Timestamp: "},
                 pad={"t": 50},
                 steps=steps
@@ -117,6 +117,5 @@ else:
             retry = False  # Exit loop if successful
 
         except Exception as e:
-            st.error(f"An error occurred: {e}")
-            retry = st.button("Retry")  # Ask user to retry
-        
+            # st.error(f"An error occurred: {e}")
+            retry = st.button("Estimate proportions")  # Ask user to retry
