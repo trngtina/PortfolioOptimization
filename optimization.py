@@ -80,7 +80,7 @@ def optimal_portfolio(tickers, hold_days, min_bound, max_bound):
         # Optimize
         optimize_results = minimize(neg_sharpe_ratio, initial_weights, args=(log_returns_i, cov_matrix, risk_free_rate), method='SLSQP',
                                     constraints=constraints, bounds=bounds)
-        optimal_weights = optimize_results.x
+        optimal_weights = np.around(optimize_results.x, 2)
         optimal_return = expected_return(optimal_weights, log_returns_i)
         optimal_volatility = standard_deviation(optimal_weights, cov_matrix)
         optimal_sharpe_ratio = sharpe_ratio(optimal_weights, log_returns_i, cov_matrix, risk_free_rate)
