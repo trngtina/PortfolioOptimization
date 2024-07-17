@@ -10,7 +10,7 @@ import yfinance as yf
 from scipy.optimize import minimize
 
 
-def optimal_portfolio(tickers, hold_days = 30):
+def optimal_portfolio(tickers, hold_days):
 
     # Dates
     end_date = datetime.today()
@@ -85,7 +85,7 @@ def optimal_portfolio(tickers, hold_days = 30):
         optimal_volatility = standard_deviation(optimal_weights, cov_matrix)
         optimal_sharpe_ratio = sharpe_ratio(optimal_weights, log_returns_i, cov_matrix, risk_free_rate)
         
-        ts.append(log_returns_i.index[0])
+        ts.append(log_returns_i.index[-1])
         optimal_pf_weights.append(list(optimal_weights))
         optimal_pf_return.append(optimal_return)
         optimal_pf_vol.append(optimal_volatility)
@@ -94,8 +94,3 @@ def optimal_portfolio(tickers, hold_days = 30):
     optimal_pf_weights = pd.DataFrame(optimal_pf_weights, columns=tickers, index=ts)
 
     return optimal_pf_weights
-
-# Example usage
-tickers = ["SPY", "BND", "GLD", "QQQ", "VTI"]
-results = optimal_portfolio(tickers)
-print(results)
