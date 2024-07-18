@@ -88,9 +88,9 @@ else:
                 )
                 fig.add_trace(table_trace, row=1, col=2)  # Place table in the second column
 
-            # Set the first trace (Pie chart) and second trace (Table) to be visible by default
-            fig.data[0].visible = True
-            fig.data[1].visible = True
+            # Set the last trace (Pie chart) and table trace to be visible by default
+            fig.data[-2].visible = True
+            fig.data[-1].visible = True
 
             # Create slider steps
             steps = []
@@ -117,7 +117,7 @@ else:
             # Update layout to include the slider
             fig.update_layout(
                 sliders=sliders,
-                title=f"Timestamp: {results.index[0]}",  # Set initial title
+                title=f"Timestamp: {results.index[-1]}",  # Set initial title to the most recent timestamp
                 showlegend=False,  # Hide legend if not needed
                 uniformtext_minsize=10,
                 uniformtext_mode='hide'
@@ -129,5 +129,5 @@ else:
 
         except Exception as e:
             # Handle exceptions or errors here
-            st.error(f"An error occurred: {e}")
+            # st.error(f"An error occurred: {e}")
             retry = st.button("Estimate proportions")
