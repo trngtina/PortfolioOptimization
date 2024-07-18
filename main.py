@@ -12,6 +12,7 @@ import plotly.colors as pcolors
 from plotly.subplots import make_subplots
 
 from optimization import optimal_portfolio
+from functions import get_distinct_colors
 
 #######################
 
@@ -46,17 +47,17 @@ else:
 
             # Generate a list of colors based on the number of columns using Plotly discrete color scale
             num_cols = len(results.columns)
-            color_scale = px.colors.qualitative.Plotly
-            colors = color_scale * (num_cols // len(color_scale)) + color_scale[:num_cols % len(color_scale)]
+            colors = get_distinct_colors(num_cols)
             color_dict = {column: colors[i] for i, column in enumerate(results.columns)}
 
             # Create the figure with subplots
             fig = make_subplots(
                 rows=1, cols=2, 
                 column_widths=[0.4, 0.6],  # Adjust column widths to add separation
-                subplot_titles=("Pie Chart", "Performance Table"),
                 specs=[[{"type": "pie"}, {"type": "table"}]]  # Specify subplot types
             )
+
+            performance_transpose = performance.transpose()
 
             # Iterate over each row in the DataFrame to add pie charts and a table trace
             for i in range(len(results)):
@@ -73,7 +74,7 @@ else:
                         values=filtered_results,
                         marker=dict(colors=filtered_colors),
                         sort=False,
-                        hole=.4,
+                        hole=.2,
                         textinfo='label',
                         hoverinfo='label+percent'
                     ),
@@ -82,8 +83,8 @@ else:
 
                 # Add the table trace for performance metrics
                 table_trace = go.Table(
-                    header=dict(values=list(performance.columns)),
-                    cells=dict(values=[performance.iloc[i][col] for col in performance.columns]),
+                    header=dict(values=["Metric", "Value"], font=dict(size=18), height = 30),
+                    cells=dict(values=[performance_transpose.index, performance_transpose.iloc[:, i]], font=dict(size=16), height = 30),
                     visible=False
                 )
                 fig.add_trace(table_trace, row=1, col=2)  # Place table in the second column
