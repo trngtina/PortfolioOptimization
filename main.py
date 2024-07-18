@@ -9,8 +9,9 @@ from datetime import datetime, timedelta
 import plotly.express as px
 import yfinance as yf
 import plotly.colors as pcolors
+from plotly.subplots import make_subplots
 
-import optimization
+from optimization import optimal_portfolio
 
 #######################
 
@@ -41,31 +42,28 @@ else:
     retry = True
     while retry:
         try:
-            results = optimization.optimal_portfolio(options, hold_days=time_steps, min_bound = mini, max_bound=maxi)[::-1]
+            results, performance = optimal_portfolio(options, hold_days=time_steps, min_bound=mini, max_bound=maxi)
+
             # Generate a list of colors based on the number of columns using Plotly discrete color scale
-            # Assuming `results` is your DataFrame
             num_cols = len(results.columns)
-
-            # Get the 'Plotly' qualitative color scale
             color_scale = px.colors.qualitative.Plotly
-
-            # Repeat colors if there are more columns than colors in the scale
             colors = color_scale * (num_cols // len(color_scale)) + color_scale[:num_cols % len(color_scale)]
-
-            # Create a dictionary with column names as keys and colors as values
             color_dict = {column: colors[i] for i, column in enumerate(results.columns)}
 
-            # Create the figure
-            fig = go.Figure()
+            # Create the figure with subplots
+            fig = make_subplots(
+                rows=1, cols=2, 
+                column_widths=[0.4, 0.6],  # Adjust column widths to add separation
+                subplot_titles=("Pie Chart", "Performance Table"),
+                specs=[[{"type": "pie"}, {"type": "table"}]]  # Specify subplot types
+            )
 
-            # Iterate over each row in the DataFrame
+            # Iterate over each row in the DataFrame to add pie charts and a table trace
             for i in range(len(results)):
                 # Filter out columns with 0% values
                 filtered_results = results.iloc[i][results.iloc[i] > 0]
-                
-                # Map the filtered column names to their corresponding colors
                 filtered_colors = [color_dict[label] for label in filtered_results.index]
-                
+
                 # Add the filtered pie trace
                 fig.add_trace(
                     go.Pie(
@@ -73,32 +71,44 @@ else:
                         name=results.index[i],
                         labels=filtered_results.index,
                         values=filtered_results,
-                        marker=dict(colors=filtered_colors), # Assign colors to the pie chart
+                        marker=dict(colors=filtered_colors),
                         sort=False,
                         hole=.4,
                         textinfo='label',
                         hoverinfo='label+percent'
-                    )
+                    ),
+                    row=1, col=1  # Place pie chart in the first column
                 )
 
-            # Set the first trace to be visible by default
+                # Add the table trace for performance metrics
+                table_trace = go.Table(
+                    header=dict(values=list(performance.columns)),
+                    cells=dict(values=[performance.iloc[i][col] for col in performance.columns]),
+                    visible=False
+                )
+                fig.add_trace(table_trace, row=1, col=2)  # Place table in the second column
+
+            # Set the first trace (Pie chart) and second trace (Table) to be visible by default
             fig.data[0].visible = True
+            fig.data[1].visible = True
 
             # Create slider steps
             steps = []
-            for i in range(len(fig.data)):
+            for i in range(len(results)):
                 step = dict(
                     method="update",
                     args=[
-                        {"visible": [False] * len(fig.data)},
-                        {"title": f"Timestamp: {results.index[i]}"}],
+                        {"visible": [False] * len(fig.data)},  # Set all traces to invisible initially
+                        {"title": f"Timestamp: {results.index[i]}"}  # Update title with timestamp
+                    ],
                 )
-                step["args"][0]["visible"][i] = True
+                step["args"][0]["visible"][2 * i] = True  # Set Pie chart trace visible
+                step["args"][0]["visible"][2 * i + 1] = True  # Set Table trace visible
                 steps.append(step)
 
             # Define the slider
             sliders = [dict(
-                active = len(results)-1,
+                active=len(results) - 1,  # Set the active step to the last timestamp initially
                 currentvalue={"prefix": "Timestamp: "},
                 pad={"t": 50},
                 steps=steps
@@ -107,9 +117,10 @@ else:
             # Update layout to include the slider
             fig.update_layout(
                 sliders=sliders,
-                title=f"Timestamp: {results.index[0]}",
-                showlegend = False,
-                uniformtext_minsize=10, uniformtext_mode='hide'
+                title=f"Timestamp: {results.index[0]}",  # Set initial title
+                showlegend=False,  # Hide legend if not needed
+                uniformtext_minsize=10,
+                uniformtext_mode='hide'
             )
 
             # Display the figure in the Streamlit app
@@ -117,5 +128,6 @@ else:
             retry = False  # Exit loop if successful
 
         except Exception as e:
-            # st.error(f"An error occurred: {e}")
-            retry = st.button("Estimate proportions")  # Ask user to retry
+            # Handle exceptions or errors here
+            st.error(f"An error occurred: {e}")
+            retry = st.button("Estimate proportions")

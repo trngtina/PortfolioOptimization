@@ -87,10 +87,16 @@ def optimal_portfolio(tickers, hold_days, min_bound, max_bound):
         
         ts.append(log_returns_i.index[-1])
         optimal_pf_weights.append(list(optimal_weights))
-        optimal_pf_return.append(optimal_return)
-        optimal_pf_vol.append(optimal_volatility)
-        optimal_pf_sharpe.append(optimal_sharpe_ratio)
+        optimal_pf_return.append(round(optimal_return, 2))
+        optimal_pf_vol.append(round(optimal_volatility, 2))
+        optimal_pf_sharpe.append(round(optimal_sharpe_ratio, 2))
         
     optimal_pf_weights = pd.DataFrame(optimal_pf_weights, columns=tickers, index=ts)
+    
+    optimal_pf_performance = pd.DataFrame({
+       'returns': optimal_pf_return,
+       'volatility': optimal_pf_vol,
+       'sharpe ratio': optimal_pf_sharpe
+    }, index=ts)
 
-    return optimal_pf_weights
+    return optimal_pf_weights[::-1], optimal_pf_performance[::-1]
